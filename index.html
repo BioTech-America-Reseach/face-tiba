@@ -1113,38 +1113,70 @@
             scanStatus.innerText = '🔍 INACHAMBUUA... (scan inaendelea)';
 
             setTimeout(() => {
-                if (cameraSection.classList.contains('hidden')) return;
-                laserLine.style.display = 'none';
-                scanStatus.innerText = '✅ Uchambuzi umekamilika!';
-                
-                const year = parseInt(localStorage.getItem('zodiacYear'));
-                const index = (year - 4) % 12;
-                const zodiac = animals[index >= 0 ? index : index + 12];
-                const data = zodiacData[zodiac] || zodiacData["Nyoka"]; // fallback
+                captureBtn.addEventListener('click', () => {
+    if (!video.videoWidth) {
+        alert('Kamera bado haijaanza. Subiri kidogo.');
+        return;
+    }
 
-                saveReportToStorage(zodiac, data.diseases, data.chinaMeds, data.williamMeds, data.herbMeds, data.food);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                if (!isAdmin) {
-                    setUserScanned(true);
-                }
+    video.style.display = 'none';
+    canvas.style.display = 'block';
 
-                resultZodiac.innerText = zodiac;
-                diseaseList.innerHTML = '';
-                data.diseases.forEach(d => {
-                    const li = document.createElement('li');
-                    li.textContent = d;
-                    diseaseList.appendChild(li);
-                });
-                chinaMeds.innerHTML = data.chinaMeds.replace(/\n/g, '<br>');
-                williamMeds.innerHTML = data.williamMeds.replace(/\n/g, '<br>');
-                herbMeds.innerHTML = data.herbMeds.replace(/\n/g, '<br>');
-                foodTip.innerHTML = data.food.replace(/\n/g, '<br>');
+    laserLine.style.display = 'block';
+    captureBtn.style.display = 'none';
+    scanStatus.innerText = '🔍 INACHAMBUUA... (scan inaendelea)';
 
-                stopCamera();
-                cameraSection.classList.add('hidden');
-                resultsSection.classList.remove('hidden');
-            }, 4000);
+    // Punguza muda hadi sekunde 1.5
+    setTimeout(() => {
+        // Hakikisha cameraSection bado iko visible kabla ya kuendelea
+        if (cameraSection.classList.contains('hidden')) {
+            console.log('Camera section imefichwa mapema, sitaki kuendelea.');
+            return;
+        }
+
+        laserLine.style.display = 'none';
+        scanStatus.innerText = '✅ Uchambuzi umekamilika!';
+
+        const year = parseInt(localStorage.getItem('zodiacYear'));
+        const index = (year - 4) % 12;
+        const zodiac = animals[index >= 0 ? index : index + 12];
+        const data = zodiacData[zodiac] || zodiacData["Nyoka"]; // fallback
+
+        // Angalia kama data ipo
+        if (!data) {
+            console.error('Hakuna data ya zodiac:', zodiac);
+            alert('Hitilafu: Hakuna data ya zodiac hii. Wasiliana na msimamizi.');
+            return;
+        }
+
+        saveReportToStorage(zodiac, data.diseases, data.chinaMeds, data.williamMeds, data.herbMeds, data.food);
+
+        if (!isAdmin) {
+            setUserScanned(true);
+        }
+
+        // Onyesha matokeo
+        resultZodiac.innerText = zodiac;
+        diseaseList.innerHTML = '';
+        data.diseases.forEach(d => {
+            const li = document.createElement('li');
+            li.textContent = d;
+            diseaseList.appendChild(li);
         });
+        chinaMeds.innerHTML = data.chinaMeds.replace(/\n/g, '<br>');
+        williamMeds.innerHTML = data.williamMeds.replace(/\n/g, '<br>');
+        herbMeds.innerHTML = data.herbMeds.replace(/\n/g, '<br>');
+        foodTip.innerHTML = data.food.replace(/\n/g, '<br>');
+
+        stopCamera();
+        cameraSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+    }, 1500); // Sekunde 1.5 badala ya 4
+});
 
         // ---------- Download Report ----------
         downloadReportBtn.addEventListener('click', () => {
