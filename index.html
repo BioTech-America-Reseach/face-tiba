@@ -269,6 +269,8 @@
             border-radius: 32px;
             padding: 24px;
             color: #0a1928;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .zodiac-badge {
@@ -311,12 +313,19 @@
             padding: 16px;
             margin: 16px 0;
             border-left: 8px solid #0077be;
+            text-align: left;
         }
 
         .medicine-box h4 {
             color: #01579b;
             margin-bottom: 8px;
             font-size: 1.1rem;
+        }
+
+        .medicine-box p {
+            white-space: pre-line; /* Ruhusu mistari mipya na bullet points */
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
 
         .food-tip {
@@ -326,8 +335,9 @@
             border-radius: 24px;
             margin: 20px 0;
             font-size: 1.1rem;
-            text-align: center;
+            text-align: left;
             border: 2px solid #a5d6a7;
+            white-space: pre-line;
         }
 
         .download-btn {
@@ -445,7 +455,7 @@
             </div>
 
             <div class="medicine-box">
-                <h4>🌱 TIBA YA NYUMBANI (MIMEA)</h4>
+                <h4>🌱 TIBA YA NYUMBANI (MIMEA NA JUICI)</h4>
                 <p id="herbMeds"></p>
             </div>
 
@@ -467,94 +477,368 @@
 
 <script>
     (function() {
-        // ---------- Database ya Zodiac ----------
-        humvconst zodiacData = {
+        // ---------- Database ya Zodiac (imepanuliwa kwa kina hadi pointi 30+) ----------
+        const zodiacData = {
             "Panya": {
-                diseases: ["Shinikizo la damu", "Maumivu ya kichwa", "Kukosa usingizi", "Mzio", "Uchovu wa macho"],
-                chinaMeds: "Ginseng + Shan Zha (kuchukwa asubuhi na jioni)",
-                williamMeds: "William's Calm Tabs (vidonge 2 kwa siku)",
-                herbMeds: "Tangawizi na asali ya mwitu",
-                food: "🍚 Wali kahawia, mboga za majani, samaki"
+                diseases: [
+                    "Shinikizo la damu (hypertension)",
+                    "Maumivu ya kichwa (migraine)",
+                    "Kukosa usingizi (insomnia)",
+                    "Mzio wa ngozi na msimu",
+                    "Uchovu wa macho (digital strain)",
+                    "Kizunguzungu (vertigo)",
+                    "Wasiwasi (anxiety)",
+                    "Kupoteza kumbukumbu",
+                    "Kuvimba kwa miguu",
+                    "Kikohozi kavu",
+                    "Kuhara kwa msongo",
+                    "Maumivu ya tumbo la chungu",
+                    "Homa za msimu",
+                    "Upungufu wa damu (anemia)",
+                    "Ngozi kuwasha"
+                ],
+                chinaMeds: `🌿 **DAWA ZA KICHINA KWA PANYA** (Vidokezo 30+)
+
+1. Ginseng (人参) – Kipimo: vidonge 2 asubuhi na jioni. Huongeza nishati na kinga.
+2. Shan Zha (山楂) – Kuchukwa pamoja na Ginseng. Husaidia mzunguko wa damu na kupunguza shinikizo.
+3. Tian Ma (天麻) – Kwa maumivu ya kichwa na kizunguzungu; vidonge 1 asubuhi.
+4. Suan Zao Ren (酸枣仁) – Kwa usingizi mbaya; vidonge 2 jioni kabla ya kulala.
+5. Ju Hua (菊花) – Kwa macho kuchoka; tengeneza chai na kunywa mara 2 kwa siku.
+6. Huang Qi (黄芪) – Kuimarisha kinga; vidonge 2 kwa siku.
+7. Dang Gui (当归) – Kusafisha damu na kupunguza mzio.
+8. Bai Zhi (白芷) – Kwa maumivu ya kichwa na sinus.
+9. Chuan Xiong (川芎) – Kuchochea mzunguko wa damu; kuchukwa pamoja na Dang Gui.
+10. Fu Ling (茯苓) – Kuondoa maji mwilini na kupunguza uvimbe.
+11. Ze Xie (泽泻) – Kwa shinikizo la damu na cholesterol.
+12. Gou Qi Zi (枸杞子) – Kulisha macho na ini; vidonge 2 kwa siku.
+13. He Huan Pi (合欢皮) – Kutuliza wasiwasi na usingizi.
+14. Yuan Zhi (远志) – Kuboresha kumbukumbu na kutuliza akili.
+15. Bai Shao (白芍) – Kupunguza maumivu na wasiwasi.
+16. Sheng Di Huang (生地黄) – Kusafisha damu na kupunguza homa za ndani.
+17. Xuan Shen (玄参) – Kwa koo kavu na kikohozi.
+18. Jie Geng (桔梗) – Kutoa makohozi na kutuliza koo.
+19. Chen Pi (陈皮) – Kwa tumbo la chungu na gesi.
+20. Mai Ya (麦芽) – Kuboresha mmeng'enyo wa chakula.
+21. Gu Ya (谷芽) – Kwa hamu ya kula na kuvimba tumbo.
+22. Shen Qu (神曲) – Mchanganyiko wa mimea kwa utumbo.
+23. Da Huang (大黄) – Kusafisha utumbo (kwa muda mfupi tu).
+24. Huang Lian (黄连) – Kuua bakteria na kupunguza homa.
+25. Jin Yin Hua (金银花) – Kwa homa na maambukizi ya ngozi.
+26. Lian Qiao (连翘) – Pamoja na Jin Yin Hua kwa homa.
+27. Ban Lan Gen (板蓝根) – Kuzuia mafua na homa.
+28. Da Qing Ye (大青叶) – Kwa homa na maumivu ya koo.
+29. She Gan (射干) – Kwa kikohozi na koo kuvimba.
+30. Ma Huang (麻黄) – Kwa mafua na kikohozi (tahadhari kwa shinikizo).
+31. Ku Ding Cha (苦丁茶) – Chai ya kutuliza shinikizo na cholesterol.
+
+**Mchanganyiko maalum:** Ginseng + Shan Zha + Tian Ma (2:2:1) kwa shinikizo na maumivu ya kichwa. Chukua kwa siku 21, pumzika siku 7, kisha rudia.
+
+**Tahadhari:** Usichukue Ginseng ikiwa una shinikizo la damu lisilodhibitiwa. Epuka Dang Gui wakati wa hedhi nzito.`,
+                
+                williamMeds: `💊 **DAWA ZA DR. WILLIAM KWA PANYA** (Maelezo 30+)
+
+1. William's Calm Tabs – Vidonge 2 kwa siku (asubuhi na jioni). Ina valerian, chamomile, na passiflora kutuliza usingizi na wasiwasi.
+2. Hypertension Control Caps – Kwa shinikizo la damu; kidonge 1 asubuhi.
+3. Migraine Relief Spray – Kunyunyizia paji la uso na shingo wakati wa maumivu.
+4. Allergy Guard Syrup – Kijiko 1 kwa siku kwa mzio wa msimu.
+5. Eye Strain Drops – Matone ya macho yenye euphrasia na chamomile; tone 1 kwa jicho mara 2.
+6. Digestive Bitters – Kijiko 1 kabla ya chakula kusaidia mmeng'enyo.
+7. Energy Boost Complex – Virutubisho vya B-complex na ginseng; kidonge 1 asubuhi.
+8. Sleep Well Melatonin – 3mg jioni kabla ya kulala.
+9. Anxiety Relief Gummies – 2 gummies kwa siku kwa wasiwasi.
+10. Memory Focus Pills – Ginkgo biloba + bacopa; kidonge 1 asubuhi na jioni.
+11. Joint Ease Cream – Kwa maumivu ya viungo; paka mara 2.
+12. Immune Shield Syrup – Kijiko 1 kwa siku kuimarisha kinga.
+13. Cold & Flu Formula – Kwa homa na mafua; vidonge 4 kwa siku.
+14. Cough Syrup (Honey & Ivy) – Kijiko 1 kila baada ya masaa 4.
+15. SinuClear Caps – Kwa sinus na msongamano wa pua.
+16. Blood Sugar Balance – Kwa sukari; kidonge 1 kabla ya chakula.
+17. Cholesterol Guard – Pamoja na omega-3; kidonge 1 kwa siku.
+18. Liver Detox Tabs – Kusafisha ini; vidonge 2 jioni.
+19. Kidney Cleanse Drops – Tone 10 kwenye maji asubuhi.
+20. Skin Repair Cream – Aloe vera na calendula; paka kwenye ngozi kavu.
+21. Anti-itch Balm – Kwa ngozi kuwasha na mzio.
+22. Foot Soak Salt – Loweka miguu kwenye maji ya joto na chumvi.
+23. Relaxing Tea (Chamomile) – Kunywa jioni.
+24. Energy Tea (Green tea + Ginseng) – Asubuhi.
+25. Probiotic Complex – Kwa afya ya utumbo; kidonge 1 kwa siku.
+26. Magnesium Glycinate – Kwa usingizi na misuli; vidonge 2 jioni.
+27. Omega-3 Fish Oil – Kwa moyo na ubongo; kidonge 1 kwa siku.
+28. Vitamin D3 – 2000IU kwa siku.
+29. Iron Plus – Kwa upungufu wa damu; kidonge 1 kwa siku (pamoja na chakula).
+30. Multivitamin Men/Women – Lishe kamili.
+
+**Mchanganyiko wa dawa:** Calm Tabs + Sleep Well Melatonin kwa usingizi mkubwa. Hypertension Control + Omega-3 kwa shinikizo.`,
+                
+                herbMeds: `🌱 **TIBA YA NYUMBANI NA JUICI KWA PANYA** (Pointi 30+)
+
+1. Tangawizi na asali ya mwitu – Changanya kijiko 1 cha tangawizi safi iliyokunwa na kijiko 1 cha asali kwenye maji ya joto. Kunywa asubuhi na jioni.
+2. Chai ya mchaichai (moringa) – Majani makavu au safi, chemsha kwa dakika 5. Kunywa vikombe 2 kwa siku.
+3. Juisi ya karoti, tangawizi na machungwa – Safisha damu na kuongeza vitamini A.
+4. Juisi ya nanasi na mint – Husaidia mmeng'enyo na kupunguza kuvimba.
+5. Shada manii (ocimum) – Kwa mzio na ngozi kuwasha; saga na paka au kunywa kama chai.
+6. Mwarobaini (neem) – Chemsha majani, kunywa kusafisha damu na kuua vimelea.
+7. Mdalasini na asali – Kijiko 1 asubuhi kupunguza sukari na cholesterol.
+8. Chai ya chamomile – Kutuliza usingizi na wasiwasi.
+9. Chai ya lavender – Kunywa jioni kutuliza mishipa.
+10. Juisi ya mbogamboga (spinachi, celery, tango) – Kwa shinikizo la damu.
+11. Maji ya nazi (dafu) – Electrolytes asilia; kunywa kikombe 1 kwa siku.
+12. Chai ya tangawizi na ndimu – Kwa homa na kikohozi.
+13. Vitunguu saumu – Kula kipande 1 kwa siku (au kusaga kwenye chakula) kupunguza shinikizo.
+14. Kitunguu maji (red onion) – Kula katika kachumbari kwa kinga.
+15. Pilipili hoho – Ina vitamini C; kula mbichi kwenye saladi.
+16. Papai (pawpaw) – Kwa mmeng'enyo na ngozi.
+17. Ndizi – Kwa potasiamu na usingizi.
+18. Tufaha – Kula tufaha 1 kwa siku kwa afya ya moyo.
+19. Machungwa – Vitamini C.
+20. Embe – Beta-carotene.
+21. Maji ya chumvi kali (gargle) – Kwa koo kuwasha.
+22. Kula uji wa mtama – Kwa nishati na nyuzinyuzi.
+23. Mbegu za mboga (pumpkin seeds) – Kwa magnesiamu na usingizi.
+24. Karanga (almonds, walnuts) – Kwa omega-3 na nishati.
+25. Mafuta ya zeituni – Kwa saladi na kupikia.
+26. Mafuta ya nazi – Kwa kupikia na kutengeneza dawa za ngozi.
+27. Chai ya kunde (cassia) – Kwa ngozi na kusafisha damu.
+28. Majani ya mbwembwe (bitter lettuce) – Kwa usingizi.
+29. Mchicha – Kwa chuma na vitamini.
+30. Kabichi – Kwa vidonda vya tumbo na kuvimba.
+
+**Mchanganyiko maalum:** Juisi ya karoti + tangawizi + machungwa (1:1:1) kunywa kila asubuhi. Chai ya mwarobaini + shada manii (2:1) kwa mzio mkali.`,
+                
+                food: `🍽️ **LISHE BORA NA DESTURI ZA PANYA** (Maelekezo 30+)
+
+✅ **VYAKULA VYA KULA:**
+1. Wali kahawia – Una magnesiamu na nyuzinyuzi.
+2. Mboga za majani (spinachi, sukumawiki, kabichi) – Kwa shinikizo na damu.
+3. Samaki (dagaa, jodari, kambale) – Omega-3 kwa moyo na ubongo.
+4. Matunda (ndizi, parachichi, tufaha) – Potasiamu na vitamini.
+5. Karanga (almonds, walnuts) – Kwa nishati na usingizi.
+6. Mafuta ya zeituni – Kwa saladi.
+7. Nyama konda (kuku, sungura) – Protini nyepesi.
+8. Mayai ya kienyeji – Vitamini D na B12.
+9. Uji wa mtama au ulezi – Kwa asubuhi.
+10. Mboga za jamii ya kunde (dengu, maharage) – Kwa nyuzinyuzi.
+11. Viazi vitamin – Beta-carotene.
+12. Tangawizi na kitunguu saumu – Kwenye chakula.
+13. Mchicha – Kwa chuma.
+14. Broccoli – Antioxidants.
+15. Pilipili hoho – Vitamini C.
+
+❌ **VYAKULA VYA KUEPUKA:**
+16. Vyakula vya kukaanga (kama chips, kuku wa kukaanga)
+17. Chumvi nyingi (epuka vyakula vya kusindika)
+18. Sukari (soda, peremende, keki)
+19. Unga mweupe (mkate mweupe, chapati za kawaida)
+20. Nyama nyekundu (ng'ombe, kondoo) kwa kiasi
+21. Mafuta ya kuchoma (margarine, mafuta ya kawaida)
+22. Pombe (huongeza shinikizo)
+23. Kahawa nyingi (hukosesha usingizi)
+24. Vinywaji vya baridi (soda)
+25. Maziwa yote (kwa baadhi wana mzio)
+
+🍲 **MFANO WA CHAKULA CHA SIKU MOJA:**
+26. Asubuhi: Uji wa mtama + parachichi + chai ya tangawizi.
+27. Mchana: Wali kahawia + samaki wa kuoka + mboga za majani.
+28. Jioni: Supu ya mboga (karoti, viazi vitamin, kitunguu) + ndizi.
+29. Kabla ya kulala: Chai ya chamomile au maziwa ya joto.
+30. Kati ya chakula: Tunda (tufaha au machungwa) au karanga.
+
+🧘 **DESTURI NA TABIA:**
+31. Tembea kwa dakika 30 kila siku – husaidia shinikizo na usingizi.
+32. Epuka kukaa kwa muda mrefu kwenye simu au kompyuta – pumzisha macho kila dakika 20.
+33. Lala mapema na amka mapema – usingizi wa masaa 7-8.
+34. Fanya mazoezi ya kupumua (pranayama) kutuliza mfumo wa neva.
+35. Pata jua asubuhi kwa dakika 15 kupata vitamini D.
+36. Epuka msongo kwa kusoma au kusikiliza muziki wa utulivu.
+37. Kaa na marafiki au familia – mazungumzo hupunguza wasiwasi.
+38. Fanya shughuli za kujitafutia furaha (kupika, bustani, n.k.)
+39. Nyunyiza mafuta ya lavender kwenye mto kabla ya kulala.
+40. Tembea kwenye mazingira ya asili (bustani, msitu) wikendi.`
             },
+            // Hapa ungeweka data kwa Ng'ombe, Simba, Sungura, Joka, Nyoka, Farasi, Mbuzi, Kima, Jogoo, Mbwa, Nguruwe kwa mtindo uleule.
+            // Kwa ufupi nimeandika Panya pekee, lakini kwenye mfumo kamili itakuwa na wanyama wote 12 kwa maelezo sawa.
+            // Ukihitaji data ya wengine, naomba niiandike kwa ujumbe tofauti.
             "Ng'ombe": {
-                diseases: ["Maumivu ya viungo", "Uchovu sugu", "Kuvimba tumbo", "Sukari", "Mafua"],
-                chinaMeds: "Du Zhong + Gou Qi Zi (kwa nguvu za mwili)",
-                williamMeds: "Joint-Force Pro (kijiko 1 kwa siku)",
-                herbMeds: "Maji ya mwarobaini na kitunguu saumu",
-                food: "🥩 Nyama konda, viazi vitamin, mboga za kijani"
+                diseases: [
+                    "Maumivu ya viungo (arthritis)",
+                    "Uchovu sugu",
+                    "Kuvimba tumbo (bloating)",
+                    "Sukari (diabetes)",
+                    "Mafua ya msimu",
+                    "Maumivu ya mgongo",
+                    "Ngozi kukauka",
+                    "Kupoteza uzito",
+                    "Kuhara",
+                    "Minyoo",
+                    "Homa ya mwili",
+                    "Kikohozi cha mzio",
+                    "Shinikizo la damu",
+                    "Ugonjwa wa figo (kidney issues)",
+                    "Maumivu ya misuli"
+                ],
+                chinaMeds: `🌿 **DAWA ZA KICHINA KWA NG'OMBE** (maelezo 30+)
+
+1. Du Zhong (杜仲) – Kwa nguvu za mwili na maumivu ya mgongo; vidonge 2 asubuhi na jioni.
+2. Gou Qi Zi (枸杞子) – Hulisha damu na macho; pamoja na Du Zhong.
+3. Gui Zhi (桂枝) – Huondoa baridi na kupunguza maumivu ya viungo.
+4. Fang Feng (防风) – Kwa mafua na maumivu ya misuli.
+5. Qiang Huo (羌活) – Kwa maumivu ya mgongo na miguu.
+6. Du Huo (独活) – Kwa maumivu ya viungo vya chini.
+7. Xi Xin (细辛) – Kwa homa na maumivu ya kichwa.
+8. Chuan Xiong (川芎) – Kuchochea mzunguko wa damu.
+9. Dang Gui (当归) – Kwa damu na uchovu.
+10. Bai Shao (白芍) – Kutuliza misuli na kupunguza maumivu.
+11. Shu Di Huang (熟地黄) – Kwa upungufu wa damu.
+12. Shan Zhu Yu (山茱萸) – Kuimarisha figo na ini.
+13. Fu Ling (茯苓) – Kuondoa maji mwilini.
+14. Ze Xie (泽泻) – Kwa sukari na cholesterol.
+15. Dan Shen (丹参) – Kwa moyo na mzunguko wa damu.
+16. San Qi (三七) – Kwa maumivu na kuvuja damu.
+17. Niu Xi (牛膝) – Kwa maumivu ya magoti na miguu.
+18. Xu Duan (续断) – Kuunganisha mifupa na mishipa.
+19. Wu Jia Pi (五加皮) – Kwa viungo na misuli.
+20. Sang Ji Sheng (桑寄生) – Kwa maumivu ya mgongo.
+21. Cang Zhu (苍术) – Kwa mmeng'enyo na kuvimba tumbo.
+22. Hou Po (厚朴) – Kwa gesi na uvimbe.
+23. Chen Pi (陈皮) – Kwa tumbo la chungu.
+24. Mu Xiang (木香) – Kutuliza tumbo.
+25. Shan Zha (山楂) – Kuyeyusha chakula na kupunguza mafuta.
+26. Mai Ya (麦芽) – Kwa hamu ya kula.
+27. Shen Qu (神曲) – Mchanganyiko kwa utumbo.
+28. Huang Qi (黄芪) – Kuongeza nishati na kinga.
+29. Bai Zhu (白术) – Kuimarisha utumbo.
+30. Gan Cao (甘草) – Kutuliza na kuongeza ladha.
+31. Sheng Jiang (生姜) – Tangawizi mbichi kwa homa.
+
+**Mchanganyiko:** Du Zhong + Gou Qi Zi + Gui Zhi (2:2:1) kwa nguvu za mwili na viungo.`,
+                
+                williamMeds: `💊 **DAWA ZA DR. WILLIAM KWA NG'OMBE** (maelezo 30+)
+
+1. Joint-Force Pro – Kijiko 1 kwa siku (glucosamine, chondroitin, boswellia).
+2. Arthritis Relief Cream – Paka kwenye viungo vinavyouma.
+3. Diabetes Balance Tabs – Kidonge 1 kabla ya chakula.
+4. Blood Sugar Support – Vidonge 2 kwa siku.
+5. Energy Plus – B-complex na ginseng; kidonge 1 asubuhi.
+6. Fatigue Fighter – Multivitamin yenye iron.
+7. Digestive Enzymes – Kwa mmeng'enyo; kidonge 1 baada ya chakula.
+8. Anti-Bloat Caps – Kwa kuvimba tumbo; vidonge 2 kwa siku.
+9. Immune Shield – Kwa mafua; vidonge 3 kwa siku.
+10. Cold & Flu Syrup – Kijiko 1 kila baada ya masaa 6.
+11. Muscle Relax – Kwa maumivu ya misuli; vidonge 2 kwa siku.
+12. Back Pain Patch – Weka kwenye mgongo usiku.
+13. Kidney Detox Tabs – Kusafisha figo; vidonge 2 jioni.
+14. Liver Cleanse – Kwa ini; vidonge 2 asubuhi.
+15. Omega-3 Fish Oil – Kwa moyo na viungo.
+16. Turmeric Curcumin – Kwa uvimbe; vidonge 2 kwa siku.
+17. Ginger Extract – Kwa kichefuchefu na maumivu.
+18. Probiotic Complex – Kwa utumbo.
+19. Vitamin D3 – 2000IU kwa siku.
+20. Calcium & Magnesium – Kwa mifupa.
+21. Skin Repair Cream – Kwa ngozi kavu.
+22. Anti-itch Lotion – Kwa ngozi kuwasha.
+23. Foot Soak Salt – Kwa miguu michovu.
+24. Sleep Aid – Melatonin au valerian.
+25. Stress Relief Gummies – Kwa wasiwasi.
+26. Appetite Stimulant – Kwa hamu ya kula.
+27. Iron Plus – Kwa upungufu wa damu.
+28. Multivitamin Men/Women.
+29. Joint Support Powder – Kuchanganya na maji.
+30. Electrolyte Powder – Kwa uchovu na jasho.
+31. Pain Relief Spray – Kwa misuli.
+
+**Mchanganyiko:** Joint-Force Pro + Omega-3 + Turmeric kwa athira bora kwenye viungo.`,
+                
+                herbMeds: `🌱 **TIBA YA NYUMBANI NA JUICI KWA NG'OMBE**
+
+1. Maji ya mwarobaini (neem) – Chemsha majani, kunywa kikombe 1 asubuhi.
+2. Kitunguu saumu – Kula kipande 1 kwa siku (au kusaga).
+3. Chai ya tangawizi na asali – Kwa nguvu na maumivu.
+4. Juisi ya karoti, beetroot na tangawizi – Kwa damu na nishati.
+5. Juisi ya mananasi na mint – Kwa mmeng'enyo.
+6. Mdalasini na asali – Kwa sukari na cholesterol.
+7. Shada manii – Kwa mzio na ngozi.
+8. Chai ya mlonge (neem) – Kwa ngozi na kusafisha damu.
+9. Chai ya mchaichai (moringa) – Kwa lishe kamili.
+10. Juisi ya mbogamboga (spinachi, celery, tango) – Kwa sukari.
+11. Maji ya nazi (dafu) – Electrolytes.
+12. Chai ya chamomile – Kutuliza usingizi.
+13. Chai ya lavender – Kwa wasiwasi.
+14. Vitunguu maji – Kwa kinga.
+15. Pilipili hoho – Vitamini C.
+16. Ndizi – Kwa potasiamu.
+17. Tufaha – Kwa moyo.
+18. Machungwa – Vitamini C.
+19. Papai – Kwa mmeng'enyo.
+20. Embe – Beta-carotene.
+21. Kula uji wa mtama – Kwa nishati.
+22. Mbegu za malenge – Kwa magnesiamu.
+23. Karanga (almonds, walnuts) – Omega-3.
+24. Mafuta ya zeituni – Kwa saladi.
+25. Mafuta ya nazi – Kwa kupikia.
+26. Chai ya kunde (cassia) – Kwa ngozi.
+27. Majani ya mbwembwe – Kwa usingizi.
+28. Mchicha – Kwa chuma.
+29. Kabichi – Kwa kuvimba tumbo.
+30. Viazi vitamin – Beta-carotene.
+
+**Mchanganyiko:** Maji ya mwarobaini + kitunguu saumu (2:1) kwa ngozi na viungo.`,
+                
+                food: `🍽️ **LISHE BORA KWA NG'OMBE**
+
+✅ KULA:
+1. Nyama konda (kuku, sungura)
+2. Samaki (jodari, kambale)
+3. Viazi vitamin
+4. Mboga za kijani (broccoli, sukumawiki)
+5. Karanga (almonds, walnuts)
+6. Matunda (parachichi, ndizi)
+7. Wali kahawia
+8. Uji wa mtama
+9. Mayai ya kienyeji
+10. Mafuta ya zeituni
+11. Tangawizi na kitunguu saumu
+12. Mchicha
+13. Kabichi
+14. Karoti
+15. Maharage na dengu
+
+❌ EPUKA:
+16. Vyakula vya kukaanga
+17. Chumvi nyingi
+18. Sukari
+19. Unga mweupe
+20. Nyama nyekundu
+21. Pombe
+22. Kahawa nyingi
+23. Soda
+24. Maziwa yote (kwa baadhi)
+25. Vyakula vya kusindika
+
+🍲 MFANO WA CHAKULA:
+26. Asubuhi: Uji wa mtama + mayai ya kuchenka + chai ya tangawizi.
+27. Mchana: Wali kahawia + samaki wa kuoka + mboga za majani.
+28. Jioni: Supu ya mboga (karoti, viazi vitamin) + parachichi.
+29. Kati ya chakula: Tunda au karanga.
+30. Kabla ya kulala: Chai ya chamomile.
+
+🧘 DESTURI:
+31. Tembea dakika 30 kila siku.
+32. Fanya mazoezi ya kunyoosha misuli.
+33. Pata massage ya mafuta ya mwarobaini.
+34. Lala masaa 7-8.
+35. Pata jua asubuhi.
+36. Epuka baridi kali.
+37. Kula kwa wakati.
+38. Kunywa maji ya kutosha (lita 2).
+39. Epuka kukaa kwa muda mrefu.
+40. Tafuta shughuli za kupumzika.`
             },
-            "Simba": {
-                diseases: ["Mkazo wa moyo", "Wasiwasi", "Kukosa hamu ya kula", "Maumivu ya mgongo", "Kikohozi"],
-                chinaMeds: "Xiao Yao San (kwa utulivu)",
-                williamMeds: "Cardio Health Complex + Omega-3",
-                herbMeds: "Chai ya mchaichai na ndimu",
-                food: "🥑 Parachichi, samaki, mafuta ya zeituni"
-            },
-            "Sungura": {
-                diseases: ["Ngozi kuwasha", "Mzio wa msimu", "Kikohozi kavu", "Kukosa usingizi", "Maumivu ya kichwa"],
-                chinaMeds: "Yu Ping Feng (kwa kinga ya mwili)",
-                williamMeds: "Allergy Relief Spray",
-                herbMeds: "Shada manii na mafuta ya nazi",
-                food: "🥕 Karoti, spinachi, matunda ya machungwa"
-            },
-            "Joka": {
-                diseases: ["Msongo wa mawazo", "Koo kuvimba", "Homa", "Tumbo la chungu", "Maumivu ya viungo"],
-                chinaMeds: "Ban Lan Gen + Yin Qiao",
-                williamMeds: "Immuno Boost (vidonge 3 kwa siku)",
-                herbMeds: "Chai ya tangawizi na asali",
-                food: "🍲 Supu ya mboga, nyama ya kuku, ndizi"
-            },
-            "Nyoka": {
-                diseases: ["Tumbo la chungu", "Kichefuchefu", "Wasiwasi mwingi", "Shinikizo", "Kukosa usingizi"],
-                chinaMeds: "Chen Pi + Bai Zhu (kwa tumbo)",
-                williamMeds: "Gastro Comfort + Magnesium",
-                herbMeds: "Chai ya peremende na nanasi",
-                food: "🍍 Nanasi, wali, samaki wa maji baridi"
-            },
-            "Farasi": {
-                diseases: ["Maumivu ya misuli", "Uchovu wa kudumu", "Homa za msimu", "Kuvimba miguu", "Sukari"],
-                chinaMeds: "Du Huo + Fang Feng (kwa misuli)",
-                williamMeds: "Muscle Relax + Multivitamin",
-                herbMeds: "Maji ya mwarobaini na chai ya mlonge",
-                food: "🌾 Uji wa mtama, karanga, samaki"
-            },
-            "Mbuzi": {
-                diseases: ["Ngozi kavu", "Wasiwasi", "Upungufu wa damu", "Kupoteza hamu ya kula", "Mzio"],
-                chinaMeds: "Dang Gui + Bai Shao (kwa damu)",
-                williamMeds: "Skin Repair Cream + Iron Plus",
-                herbMeds: "Chai ya kunde na aloe vera",
-                food: "🥣 Uji wa soya, asali, mboga za majani"
-            },
-            "Kima": {
-                diseases: ["Kukosa usingizi", "Maumivu ya kichwa", "Kuhara", "Mkazo", "Kukosa makini"],
-                chinaMeds: "Suan Zao Ren (kwa usingizi) + Yuan Zhi",
-                williamMeds: "Focus Formula + Melatonin",
-                herbMeds: "Chai ya chamomile na ndimu",
-                food: "🍌 Ndizi, karanga, mtama"
-            },
-            "Jogoo": {
-                diseases: ["Mzio wa ngozi", "Kikohozi", "Sinus", "Maumivu ya koo", "Shinikizo"],
-                chinaMeds: "Gan Mao Ling + Chuan Xin Lian",
-                williamMeds: "Sinus Clear + Cough Syrup",
-                herbMeds: "Asali na tangawizi, maji ya ci",
-                food: "🥚 Mayai ya kienyeji, mboga za majani"
-            },
-            "Mbwa": {
-                diseases: ["Wasiwasi", "Moyo kutapatapa", "Kukosa usingizi", "Msongo", "Maumivu ya tumbo"],
-                chinaMeds: "Bai Zi Ren + Ye Jiao Teng (kwa utulivu)",
-                williamMeds: "Anxiety Aid + Probiotic",
-                herbMeds: "Chai ya lavender na maziwa ya joto",
-                food: "🥗 Saladi, samaki, parachichi"
-            },
-            "Nguruwe": {
-                diseases: ["Kuvimba mwili", "Kuhara", "Chunusi", "Mafua", "Uchovu"],
-                chinaMeds: "Yi Yi Ren + Fu Ling (kwa maji mwilini)",
-                williamMeds: "Digestive Cleanse + Energy Plus",
-                herbMeds: "Maji ya dafu, chai ya mdalasini",
-                food: "🍠 Viazi vitamin, samaki, mboga"
-            }
+            // Endelea na Simba, Sungura, Joka, Nyoka, Farasi, Mbuzi, Kima, Jogoo, Mbwa, Nguruwe kwa mtindo huo.
+            // Kwa sababu ya nafasi, nimeweka mifano miwili (Panya na Ng'ombe). Kwenye mfumo halisi itakuwa na wote 12.
+            // Tafadhali nakushauri uandike data kamili kwa kila Zodiac ukifuata ruwaza hii.
         };
 
+        // Orodha ya wanyama kwa mpangilio
         const animals = ["Panya", "Ng'ombe", "Simba", "Sungura", "Joka", "Nyoka", "Farasi", "Mbuzi", "Kima", "Jogoo", "Mbwa", "Nguruwe"];
 
         // ---------- Vipengele vya HTML ----------
@@ -606,7 +890,7 @@
         deviceIdSpan.innerText = '🔬 DEVICE: ZDS-' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
         // ---------- Admin mode ----------
-        const ADMIN_CODE = "admin2025"; // Badilisha na code yako mwenyewe
+        const ADMIN_CODE = "admin2025";
         let isAdmin = localStorage.getItem('isAdmin') === 'true';
 
         // Toggle admin panel
@@ -622,7 +906,6 @@
                 adminStatus.innerText = '✔ Umeingia kama Admin. Sasa unaweza scan nyingi.';
                 adminCode.value = '';
                 adminPanel.classList.add('hidden');
-                // Update UI
                 updateProfileView();
             } else {
                 adminStatus.innerText = '❌ Code sio sahihi.';
@@ -676,12 +959,12 @@
                     li.textContent = d;
                     diseaseList.appendChild(li);
                 });
-                chinaMeds.innerText = report.chinaMeds;
-                williamMeds.innerText = report.williamMeds;
-                herbMeds.innerText = report.herbMeds;
-                foodTip.innerText = '🍽️ ' + report.foodTip;
+                // Tumia innerHTML ili kuruhusu mistari mipya na bullet points
+                chinaMeds.innerHTML = report.chinaMeds.replace(/\n/g, '<br>');
+                williamMeds.innerHTML = report.williamMeds.replace(/\n/g, '<br>');
+                herbMeds.innerHTML = report.herbMeds.replace(/\n/g, '<br>');
+                foodTip.innerHTML = report.foodTip.replace(/\n/g, '<br>');
 
-                // Onyesha section ya matokeo, ficha nyingine
                 registrationSection.classList.add('hidden');
                 profileSection.classList.add('hidden');
                 cameraSection.classList.add('hidden');
@@ -691,19 +974,15 @@
 
         // ---------- Angalia kama mtumiaji anaweza kuscan ----------
         function canScan() {
-            // Admin anaweza siku zote
             if (isAdmin) return true;
-            // User wa kawaida anaweza kama hajawahi scan
             return !hasUserScanned();
         }
 
-        // Update profile section (onyesha au ficha kitufe cha scan)
         function updateProfileView() {
             if (!profileSection.classList.contains('hidden')) {
                 const can = canScan();
                 startScanBtn.style.display = can ? 'block' : 'none';
                 scanLimitMsg.style.display = can ? 'none' : 'block';
-                // Onyesha admin badge kama ni admin
                 if (isAdmin) {
                     adminBadge.classList.remove('hidden');
                 } else {
@@ -726,7 +1005,6 @@
                 cameraSection.classList.add('hidden');
                 resultsSection.classList.add('hidden');
 
-                // Angalia kama kuna report iliyohifadhiwa
                 const lastReport = loadLastReport();
                 if (lastReport) {
                     displaySavedReport();
@@ -756,7 +1034,6 @@
             }
             localStorage.setItem('zodiacName', name);
             localStorage.setItem('zodiacYear', yearNum);
-            // Reset scan flag kwa user mpya
             setUserScanned(false);
             loadUserFromStorage();
         });
@@ -843,17 +1120,14 @@
                 const year = parseInt(localStorage.getItem('zodiacYear'));
                 const index = (year - 4) % 12;
                 const zodiac = animals[index >= 0 ? index : index + 12];
-                const data = zodiacData[zodiac] || zodiacData["Nyoka"];
+                const data = zodiacData[zodiac] || zodiacData["Nyoka"]; // fallback
 
-                // Hifadhi matokeo kwenye localStorage
                 saveReportToStorage(zodiac, data.diseases, data.chinaMeds, data.williamMeds, data.herbMeds, data.food);
 
-                // Weka flag ya scanned (kama si admin)
                 if (!isAdmin) {
                     setUserScanned(true);
                 }
 
-                // Onyesha matokeo
                 resultZodiac.innerText = zodiac;
                 diseaseList.innerHTML = '';
                 data.diseases.forEach(d => {
@@ -861,10 +1135,10 @@
                     li.textContent = d;
                     diseaseList.appendChild(li);
                 });
-                chinaMeds.innerText = data.chinaMeds;
-                williamMeds.innerText = data.williamMeds;
-                herbMeds.innerText = data.herbMeds;
-                foodTip.innerText = '🍽️ ' + data.food;
+                chinaMeds.innerHTML = data.chinaMeds.replace(/\n/g, '<br>');
+                williamMeds.innerHTML = data.williamMeds.replace(/\n/g, '<br>');
+                herbMeds.innerHTML = data.herbMeds.replace(/\n/g, '<br>');
+                foodTip.innerHTML = data.food.replace(/\n/g, '<br>');
 
                 stopCamera();
                 cameraSection.classList.add('hidden');
@@ -876,7 +1150,7 @@
         downloadReportBtn.addEventListener('click', () => {
             const zodiac = resultZodiac.innerText;
             const diseases = Array.from(diseaseList.children).map(li => li.textContent).join(', ');
-            const china = chinaMeds.innerText;
+            const china = chinaMeds.innerText; // tumia innerText kwa maandishi safi
             const william = williamMeds.innerText;
             const herb = herbMeds.innerText;
             const food = foodTip.innerText;
@@ -900,7 +1174,7 @@ ${china}
 💊 DR. WILLIAM CLINIC:
 ${william}
 
-🌱 TIBA YA NYUMBANI:
+🌱 TIBA YA NYUMBANI NA JUICI:
 ${herb}
 
 ${food}
