@@ -61,6 +61,46 @@
             font-family: monospace;
         }
 
+        /* Admin Login Toggle */
+        .admin-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+        .admin-btn {
+            background: transparent;
+            border: 1px solid #00f2ff;
+            color: #00f2ff;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .admin-btn:hover {
+            background: #00f2ff20;
+        }
+        .admin-panel {
+            background: #102530;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #00f2ff;
+        }
+        .admin-panel input {
+            background: #1f3a48;
+            border: 1px solid #00f2ff;
+            color: white;
+            padding: 12px;
+            border-radius: 40px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+        }
+
         /* Card Style */
         .card {
             background: rgba(20, 40, 55, 0.7);
@@ -129,6 +169,11 @@
 
         .btn.secondary:active {
             transform: translateY(2px);
+        }
+
+        .btn.small {
+            padding: 10px 16px;
+            font-size: 0.9rem;
         }
 
         /* Profile Lock */
@@ -285,6 +330,19 @@
             border: 2px solid #a5d6a7;
         }
 
+        .download-btn {
+            background: #2e7d32;
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+            border: 1px solid #a5d6a7;
+        }
+
         .disclaimer {
             font-size: 0.7rem;
             color: #6b8e9c;
@@ -302,6 +360,21 @@
         <div class="device-id" id="deviceId">🔬 DEVICE: LOADING...</div>
     </div>
 
+    <!-- Admin Toggle (small button) -->
+    <div class="admin-section">
+        <span class="admin-btn" id="adminToggleBtn">👤 ADMIN</span>
+    </div>
+
+    <!-- Admin Login Panel (hidden by default) -->
+    <div id="adminPanel" class="admin-panel hidden">
+        <input type="password" id="adminCode" placeholder="🔐 Weka code ya siri">
+        <div class="flex-row">
+            <button class="btn small" id="adminLoginBtn">INGIA KAMA ADMIN</button>
+            <button class="btn secondary small" id="adminLogoutBtn">TOKA</button>
+        </div>
+        <p id="adminStatus" style="color:#ffb74d; font-size:0.8rem; margin-top:8px;"></p>
+    </div>
+
     <!-- USajili (Registration) -->
     <div id="registrationSection" class="card">
         <h3 style="color:#a0f0ff; margin-bottom: 16px;">📋 SAJILI KIFAA</h3>
@@ -317,8 +390,11 @@
             <div style="font-size: 0.9rem; color: #80e0ff;">🆔 KITAMBULISHO KIMEFUNGWA</div>
             <div class="profile-name" id="profileName">-</div>
             <div class="profile-year" id="profileYear">-</div>
+            <!-- Kitufe cha Scan kitaonekana kama user hajapiga scan au ni admin -->
             <button class="btn" id="startScanBtn">📸 ANZA SCAN YA USO</button>
             <button class="btn secondary" id="resetBtn" style="margin-top: 10px;">🔄 BADILISHA MTUMIAJI</button>
+            <!-- Onyo kwa user aliyeisha scan -->
+            <p id="scanLimitMsg" style="color: #ffaa66; margin-top: 12px; font-size:0.9rem; display: none;">✔️ Umepiga scan moja. Ikiwa unahitaji nyingine, ingia kama admin.</p>
         </div>
     </div>
 
@@ -362,7 +438,11 @@
 
             <div class="food-tip" id="foodTip"></div>
 
-            <button class="btn secondary" id="newScanBtn">🔄 FANYA SCAN MPYA</button>
+            <!-- Download Report Button -->
+            <button class="download-btn" id="downloadReportBtn">📥 PAKUA RIPOTI (TXT)</button>
+
+            <!-- Vitufe vya urambazaji -->
+            <button class="btn secondary" id="newScanBtn" style="margin-top: 16px;">🔄 FANYA SCAN MPYA</button>
             <button class="btn secondary" id="homeBtn" style="margin-top: 10px;">🏠 NYUMBANI</button>
         </div>
     </div>
@@ -469,6 +549,13 @@
         const profileSection = document.getElementById('profileSection');
         const cameraSection = document.getElementById('cameraSection');
         const resultsSection = document.getElementById('resultsSection');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminToggleBtn = document.getElementById('adminToggleBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+        const adminCode = document.getElementById('adminCode');
+        const adminStatus = document.getElementById('adminStatus');
+        const scanLimitMsg = document.getElementById('scanLimitMsg');
 
         const deviceIdSpan = document.getElementById('deviceId');
         const regName = document.getElementById('regName');
@@ -486,6 +573,7 @@
         const scanStatus = document.getElementById('scanStatus');
         const newScanBtn = document.getElementById('newScanBtn');
         const homeBtn = document.getElementById('homeBtn');
+        const downloadReportBtn = document.getElementById('downloadReportBtn');
 
         // Matokeo elements
         const resultZodiac = document.getElementById('resultZodiac');
@@ -504,7 +592,108 @@
         // Device ID bandia
         deviceIdSpan.innerText = '🔬 DEVICE: ZDS-' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-        // ---------- Angalia kama kuna mtumiaji aliyesajiliwa ----------
+        // ---------- Admin mode ----------
+        const ADMIN_CODE = "admin2025"; // Badilisha na code yako mwenyewe
+        let isAdmin = localStorage.getItem('isAdmin') === 'true'; // Hifadhi kipindi
+
+        // Toggle admin panel
+        adminToggleBtn.addEventListener('click', () => {
+            adminPanel.classList.toggle('hidden');
+        });
+
+        adminLoginBtn.addEventListener('click', () => {
+            const code = adminCode.value.trim();
+            if (code === ADMIN_CODE) {
+                isAdmin = true;
+                localStorage.setItem('isAdmin', 'true');
+                adminStatus.innerText = '✔ Umeingia kama Admin. Sasa unaweza scan nyingi.';
+                adminCode.value = '';
+                adminPanel.classList.add('hidden');
+                // Update UI
+                updateProfileView();
+            } else {
+                adminStatus.innerText = '❌ Code sio sahihi.';
+            }
+        });
+
+        adminLogoutBtn.addEventListener('click', () => {
+            isAdmin = false;
+            localStorage.removeItem('isAdmin');
+            adminStatus.innerText = '✖ Umetoka kwenye admin mode.';
+            adminCode.value = '';
+            adminPanel.classList.add('hidden');
+            updateProfileView();
+        });
+
+        // ---------- Angalia kama user ameshapiga scan ----------
+        function hasUserScanned() {
+            return localStorage.getItem('hasScanned') === 'true';
+        }
+
+        function setUserScanned( scanned ) {
+            localStorage.setItem('hasScanned', scanned ? 'true' : 'false');
+        }
+
+        // ---------- Hifadhi na load matokeo yaliyopo ----------
+        function saveReportToStorage(zodiac, diseasesArr, china, william, herb, food) {
+            const report = {
+                zodiac,
+                diseases: diseasesArr,
+                chinaMeds: china,
+                williamMeds: william,
+                herbMeds: herb,
+                foodTip: food,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('lastReport', JSON.stringify(report));
+        }
+
+        function loadLastReport() {
+            const saved = localStorage.getItem('lastReport');
+            return saved ? JSON.parse(saved) : null;
+        }
+
+        function displaySavedReport() {
+            const report = loadLastReport();
+            if (report) {
+                resultZodiac.innerText = report.zodiac;
+                diseaseList.innerHTML = '';
+                report.diseases.forEach(d => {
+                    const li = document.createElement('li');
+                    li.textContent = d;
+                    diseaseList.appendChild(li);
+                });
+                chinaMeds.innerText = report.chinaMeds;
+                williamMeds.innerText = report.williamMeds;
+                herbMeds.innerText = report.herbMeds;
+                foodTip.innerText = '🍽️ ' + report.foodTip;
+
+                // Onyesha section ya matokeo, ficha nyingine
+                registrationSection.classList.add('hidden');
+                profileSection.classList.add('hidden');
+                cameraSection.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+            }
+        }
+
+        // ---------- Angalia kama mtumiaji anaweza kuscan ----------
+        function canScan() {
+            // Admin anaweza siku zote
+            if (isAdmin) return true;
+            // User wa kawaida anaweza kama hajawahi scan
+            return !hasUserScanned();
+        }
+
+        // Update profile section (onyesha au ficha kitufe cha scan)
+        function updateProfileView() {
+            if (!profileSection.classList.contains('hidden')) {
+                const can = canScan();
+                startScanBtn.style.display = can ? 'block' : 'none';
+                scanLimitMsg.style.display = can ? 'none' : 'block';
+            }
+        }
+
+        // ---------- Load user ----------
         function loadUserFromStorage() {
             const savedName = localStorage.getItem('zodiacName');
             const savedYear = localStorage.getItem('zodiacYear');
@@ -517,8 +706,17 @@
                 profileSection.classList.remove('hidden');
                 cameraSection.classList.add('hidden');
                 resultsSection.classList.add('hidden');
+
+                // Angalia kama kuna report iliyohifadhiwa
+                const lastReport = loadLastReport();
+                if (lastReport) {
+                    // Tunaweza kuonyesha kitufe cha "Angalia ripoti iliyohifadhiwa"
+                    // Kwa urahisi, tutaonyesha moja kwa moja
+                    displaySavedReport();
+                } else {
+                    updateProfileView();
+                }
             } else {
-                // Hapana, onyesha usajili
                 registrationSection.classList.remove('hidden');
                 profileSection.classList.add('hidden');
                 cameraSection.classList.add('hidden');
@@ -541,6 +739,8 @@
             }
             localStorage.setItem('zodiacName', name);
             localStorage.setItem('zodiacYear', yearNum);
+            // Reset scan flag kwa user mpya
+            setUserScanned(false);
             loadUserFromStorage();
         });
 
@@ -548,13 +748,21 @@
         resetBtn.addEventListener('click', () => {
             localStorage.removeItem('zodiacName');
             localStorage.removeItem('zodiacYear');
-            // Stop kamera ikiwa iko
+            localStorage.removeItem('lastReport');
+            setUserScanned(false);
             stopCamera();
             loadUserFromStorage();
         });
 
         // ---------- Fungua Kamera ----------
-        startScanBtn.addEventListener('click', openCamera);
+        startScanBtn.addEventListener('click', () => {
+            if (!canScan()) {
+                alert('Umepiga scan mara moja tayari. Kama unahitaji nyingine, ingia kama admin.');
+                return;
+            }
+            openCamera();
+        });
+
         cancelCameraBtn.addEventListener('click', () => {
             stopCamera();
             profileSection.classList.remove('hidden');
@@ -567,7 +775,7 @@
             scanStatus.innerText = '⏳ Inaandaa kamera...';
 
             try {
-                stopCamera(); // Maliza stream iliyopo
+                stopCamera();
                 mediaStream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
                     audio: false
@@ -599,70 +807,120 @@
                 return;
             }
 
-            // Chora picha kwenye canvas
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Ficha video, onyesha canvas
             video.style.display = 'none';
             canvas.style.display = 'block';
             
-            // Anza laser line
             laserLine.style.display = 'block';
             captureBtn.style.display = 'none';
             scanStatus.innerText = '🔍 INACHAMBUUA... (scan inaendelea)';
 
-            // Baada ya sekunde 4, endelea kwa matokeo
             setTimeout(() => {
-                if (cameraSection.classList.contains('hidden')) return; // Kama user tayari aka cancel
+                if (cameraSection.classList.contains('hidden')) return;
                 laserLine.style.display = 'none';
                 scanStatus.innerText = '✅ Uchambuzi umekamilika!';
                 
-                // Pata zodiac
                 const year = parseInt(localStorage.getItem('zodiacYear'));
                 const index = (year - 4) % 12;
                 const zodiac = animals[index >= 0 ? index : index + 12];
                 const data = zodiacData[zodiac] || zodiacData["Nyoka"];
 
-                // Jaza matokeo
+                // Hifadhi matokeo kwenye localStorage
+                saveReportToStorage(zodiac, data.diseases, data.chinaMeds, data.williamMeds, data.herbMeds, data.food);
+
+                // Weka flag ya scanned (kama si admin)
+                if (!isAdmin) {
+                    setUserScanned(true);
+                }
+
+                // Onyesha matokeo
                 resultZodiac.innerText = zodiac;
-                
                 diseaseList.innerHTML = '';
                 data.diseases.forEach(d => {
                     const li = document.createElement('li');
                     li.textContent = d;
                     diseaseList.appendChild(li);
                 });
-
                 chinaMeds.innerText = data.chinaMeds;
                 williamMeds.innerText = data.williamMeds;
                 herbMeds.innerText = data.herbMeds;
                 foodTip.innerText = '🍽️ ' + data.food;
 
-                // Badili sehemu
                 stopCamera();
                 cameraSection.classList.add('hidden');
                 resultsSection.classList.remove('hidden');
-            }, 4000); // Sekunde 4 za scan
+            }, 4000);
+        });
+
+        // ---------- Download Report ----------
+        downloadReportBtn.addEventListener('click', () => {
+            const zodiac = resultZodiac.innerText;
+            const diseases = Array.from(diseaseList.children).map(li => li.textContent).join(', ');
+            const china = chinaMeds.innerText;
+            const william = williamMeds.innerText;
+            const herb = herbMeds.innerText;
+            const food = foodTip.innerText;
+
+            const content = `
+RIPOTI YA ZODIAC HEALTH SCANNER
+================================
+Zodiac: ${zodiac}
+Jina: ${localStorage.getItem('zodiacName') || ''}
+Mwaka: ${localStorage.getItem('zodiacYear') || ''}
+Tarehe: ${new Date().toLocaleString()}
+
+🚨 MAGONJWA YANAYOWEZA KUKUFIKIA:
+${diseases}
+
+🌿 DAWA ZA KICHINA:
+${china}
+
+💊 DR. WILLIAM CLINIC:
+${william}
+
+🌱 TIBA YA NYUMBANI:
+${herb}
+
+${food}
+
+-- Matokeo yamepakuliwa kutoka Zodiac Bio-Scanner --
+            `;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Zodiac_Report_${zodiac}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
 
         // ---------- New scan (kutoka results) ----------
         newScanBtn.addEventListener('click', () => {
+            if (!canScan()) {
+                alert('Huwezi kufanya scan nyingine. Ingia kama admin.');
+                return;
+            }
             resultsSection.classList.add('hidden');
-            openCamera(); // fungua kamera tena
+            openCamera();
         });
 
         homeBtn.addEventListener('click', () => {
             stopCamera();
             resultsSection.classList.add('hidden');
             profileSection.classList.remove('hidden');
+            updateProfileView();
         });
 
         // ---------- Initialize ----------
         loadUserFromStorage();
+        updateProfileView();
 
-        // Safisha kamera wakati wa kuondoka
         window.addEventListener('beforeunload', () => {
             stopCamera();
         });
